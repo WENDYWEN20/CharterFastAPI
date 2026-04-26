@@ -1,0 +1,16 @@
+{
+    "github.copilot.chat.terminalChatLocation": "quickChat",
+    "github.copilot.chat.anthropic.tools.websearch.maxUses": 10,
+    "terminal.integrated.commandsToSkipShell": [
+        "\"chat.editor.fontSize\": 16"
+    ],
+    "workbench.settings.openDefaultSettings": true,
+    "chat.editor.fontSize": 20,
+    "chat.fontSize": 20,
+    "chat.editor.lineHeight": 1.4,
+    "window.zoomLevel": 0,
+    "input.fontSize": 20,
+    "workbench.fontSizeMedium": 20,
+    "workbench.fontSizeLarge": 22,
+    "editor.fontSize": 20
+}
