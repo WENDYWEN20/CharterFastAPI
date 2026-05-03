@@ -1,54 +1,32 @@
 from fastapi import FastAPI, HTTPException, File, UploadFile, Form, Depends
-from fastapp.db import Post, User, create_db_and_tables, get_async_session
+from fastapp.schemas import PostCreate, PostResponse
+from fastapp.db import create_db_and_tables, get_async_session
 from sqlalchemy.ext.asyncio import AsyncSession
 from contextlib import asynccontextmanager
 from sqlalchemy import select
-from fastapp.images import imagekit
-from imagekitio.models.UploadFileRequestOptions import UploadFileRequestOptions
-import os
-import uuid
-import shutil
-import tempfile
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await create_db_and_tables()
     yield
+    
 app=FastAPI(lifespan=lifespan)
 @app.post("/upload")
-
-
 async def upload_file(
         file: UploadFile = File(...), 
         caption: str = Form(""), 
         session: AsyncSession = Depends(get_async_session)
 ):
-    temp_file_path = None
-    try:
-        with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splittext(file.filename[1]) as temp_file:
-            temp_file_path = temp_file.name
-            shutil.copyfileobj(file.file, temp_file)
-            
-        upload_result = imagekit.upload_file(
-            file=open(temp_file_path, 'rb'),
-            file_name=file.filename,
-            options=UploadFileRequestOptions(use_unique_file_name=True, tags=["backend-upload"])
+    post = Post(
+        caption=caption,
+        url='dummyurl',
+        file_type='photo',
+        file_name='dummy name',
         )
-        
-    if upload_result.status_code != 200:
-        raise HTTPException(status_code=upload_result.status_code, detail="Image upload failed")
-    if upload_result.response.http_status_code ==200:
-        post = Post(
-            caption=caption,
-            url='dummyurl',
-            file_type='photo',
-            file_name='dummy name',
-            )
-        session.add(post)
-        await session.commit()
-        await session.refresh(post)
-        return post
+    session.add(post)
+    await session.commit()
+    await session.refresh(post)
+    return post
 @app.get("/feed")
 async def get_feed(
     session: AsyncSession = Depends(get_async_session)):
