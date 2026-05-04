@@ -16,13 +16,13 @@ class Base(DeclarativeBase):
 
 
 class User(SQLAlchemyBaseUserTable, Base):
-    posts = relationship(argument: "Post", back_populates="user")
+    posts = relationship("Post", back_populates="user")
     __tablename__ = "users"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=lambda: str(uuid.uuid4()))
     user_id = Column(UUID(as_uuid=True), ForeignKey("user.id"), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
-    user = relationship(argument: "User", back_populates="posts")
+    user = relationship("User", back_populates="posts")
 
 
 class Post(Base):
