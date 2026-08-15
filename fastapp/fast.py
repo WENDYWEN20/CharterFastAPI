@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from contextlib import asynccontextmanager
 from sqlalchemy import select
 from fastapp.images import imagekit
+from auth import get_current_token_payload
 import os
 import uuid
 import shutil
@@ -32,8 +33,11 @@ async def upload_file(
         file: UploadFile = File(...), 
         caption: str = Form(""), 
         user: User = Depends(current_active_user),
+        token_payload: dict = Depends(get_current_token_payload),
         session: AsyncSession = Depends(get_async_session)
 ):
+    if str(user.id) != token_payload.get("sub"):
+        raise HTTPException(status_code=403, detail="Token/user mismatch")
     temp_file_path = None
     try:
         with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(file.filename)[1]) as temp_file:
@@ -69,7 +73,10 @@ async def upload_file(
 @app.get("/feed")
 async def get_feed(
     session: AsyncSession = Depends(get_async_session),
+    token_payload: dict = Depends(get_current_token_payload),
     user: User = Depends(current_active_user)):
+    if str(user.id) != token_payload.get("sub"):
+        raise HTTPException(status_code=403, detail="Token/user mismatch")
     result = await session.execute(select(Post).order_by(Post.created_at.desc()).limit(10))
     posts = [row[0] for row in result.all()]
     result = await session.execute(select(User))
@@ -90,8 +97,15 @@ async def get_feed(
     return {"posts": posts_data} 
 
 @app.delete("/posts/{post_id}")
-async def delete_post(post_id:str, session:AsyncSession=Depends(get_async_session), user: User = Depends(current_active_user)):
+async def delete_post(
+    post_id:str,
+    session: AsyncSession = Depends(get_async_session),
+    token_payload: dict = Depends(get_current_token_payload),
+    user: User = Depends(current_active_user),
+):
     try:
+        if str(user.id) != token_payload.get("sub"):
+            raise HTTPException(status_code=403, detail="Token/user mismatch")
         post_uuid = uuid.UUID(post_id)
         result = await session.execute(select(Post).where(Post.id == post_uuid))
         post = result.scalars().first()
