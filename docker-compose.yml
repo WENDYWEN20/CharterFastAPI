@@ -1,0 +1,30 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: uvfastapi
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/cleanfastapi
+    depends_on:
+      - db
+    volumes:
+      - .:/app
+    command: uvicorn fastapp.src.main:app --host 0.0.0.0 --port 8000 --reload
+
+  db:
+    image: postgres:17
+    container_name: uvfastapi_db
+    environment:
+      POSTGRES_DB: fastapp
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+volumes:
+  postgres_data:
